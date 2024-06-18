@@ -1,2 +1,40 @@
-# bunny_storage_client
- 
+# BunnyStorage Client
+
+BunnyStorage Client is a Ruby SDK for interacting with BunnyCDN storage services.
+
+## Installation
+
+Add this line to your application's Gemfile:
+
+```ruby
+gem 'bunny_storage_client'
+```
+
+And then execute:
+
+```bash
+bundle install
+```
+Or install it yourself as:
+
+```bash
+gem install bunny_storage_client
+```
+
+## Usage
+
+```ruby
+
+require 'bunny_storage_client'
+
+client = BunnyStorageClient.new('your_access_key', 'your_api_key', 'your_storage_zone')
+client.object('your_filename').get_file
+```
+
+## Contributing
+Bug reports and pull requests are welcome on GitHub at https://github.com/rkwap/bunny_storage_client.
+
+## License
+The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+
+
