@@ -4,6 +4,8 @@ BunnyStorage Client is a Ruby SDK for interacting with BunnyCDN storage services
 
 API Documentation: https://docs.bunny.net/reference/storage-api
 
+[![Gem Version](https://badge.fury.io/rb/bunny_storage_client.svg)](https://badge.fury.io/rb/bunny_storage_client)
+
 ## Installation
 
 Add this line to your application's Gemfile:
