@@ -26,11 +26,26 @@ gem install bunny_storage_client
 ## Usage
 
 ```ruby
-
-require 'bunny_storage_client'
-
+# Initialize the client
 client = BunnyStorageClient.new('your_access_key', 'your_api_key', 'your_storage_zone')
-client.object('your_filename').get_file
+
+# Set the object
+client.object('your_filename')
+
+# Upload a file
+client.upload_file(body: File.open('path/to/local/file'))
+
+# Retrieve a file as a string
+file_content = client.get_file(as: :string)
+
+# Retrieve a file as a tempfile
+file_temp = client.get_file(as: :file)
+
+# Delete a file
+client.delete_file
+
+# Purge cache
+client.purge_cache
 ```
 
 ## Contributing
