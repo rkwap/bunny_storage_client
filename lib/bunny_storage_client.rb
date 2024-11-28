@@ -16,11 +16,14 @@ class BunnyStorageClient
   # @param api_key [String] the API key for cache purging
   # @param storage_zone_name [String, nil] the default storage zone name
   # @param logger [Logger] the logger instance for logging errors and info
-  def initialize(access_key, api_key, storage_zone_name = nil, logger = Logger.new($stdout))
+  def initialize(access_key, api_key, storage_zone_name = nil, region = nil, logger = Logger.new($stdout))
     @access_key = access_key
     @api_key = api_key
+    @region = region
     @storage_zone_name = storage_zone_name
     @logger = logger
+
+    @base_url = @region ? "https://#{@region}.storage.bunnycdn.com/" : BASE_URL
   end
 
   # Sets the object filename and optional storage zone name for operations.
@@ -130,7 +133,7 @@ class BunnyStorageClient
   private
 
   def build_uri(storage_zone_name, filename)
-    url = File.join(BASE_URL, storage_zone_name, filename)
+    url = File.join(@base_url, storage_zone_name, filename)
     url = url[...-1] if url.end_with?(File::SEPARATOR)
     URI(url)
   end
