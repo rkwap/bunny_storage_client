@@ -62,6 +62,27 @@ class BunnyStorageClient
     nil
   end
 
+  def exists?(storage_zone_name: nil, filename: nil)
+    storage_zone_name ||= @storage_zone_name
+    filename ||= @filename
+
+    uri = build_uri(storage_zone_name, filename)
+
+    # First, send a HEAD request to check if the file exists
+    head_request = Net::HTTP::Head.new(uri)
+    head_request['AccessKey'] = @access_key
+    head_request['accept'] = '*/*'
+
+    head_response = make_request(uri, head_request)
+
+    # Check if the file exists (status code 200)
+    if head_response.code != '200'
+      return false
+    end
+
+    true
+  end
+
   # Uploads a file to BunnyCDN storage.
   #
   # @param storage_zone_name [String, nil] the storage zone name

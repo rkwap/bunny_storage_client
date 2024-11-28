@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
   spec.required_ruby_version = '>= 2.5'
 
-  spec.add_dependency 'net-http', '~> 0.1.0'
+  spec.add_dependency 'net-http', '>= 0.1.0'
 
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['source_code_uri'] = spec.homepage
