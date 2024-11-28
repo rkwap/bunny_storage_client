@@ -62,7 +62,7 @@ class BunnyStorageClient
     nil
   end
 
-  def exists?(storage_zone_name: nil, filename: nil)
+  def exist?(storage_zone_name: nil, filename: nil)
     storage_zone_name ||= @storage_zone_name
     filename ||= @filename
 
