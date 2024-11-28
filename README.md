@@ -37,6 +37,9 @@ client.object('your_filename')
 # Upload a file
 client.upload_file(body: File.open('path/to/local/file'))
 
+# or string io
+client.upload_file(body: StringIO.new("Test content"))
+
 # Retrieve a file as a string
 file_content = client.get_file(as: :string)
 

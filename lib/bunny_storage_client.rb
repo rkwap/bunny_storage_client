@@ -7,7 +7,7 @@ require 'logger'
 # BunnyStorageClient is a Ruby SDK for interacting with BunnyCDN storage services.
 # API Reference: https://docs.bunny.net/reference/storage-api
 class BunnyStorageClient
-  VERSION = '1.0.0'
+  VERSION = '1.0.1'
   BASE_URL = 'https://storage.bunnycdn.com/'
 
   # Initializes the SDK with access credentials and optional logger.
@@ -72,8 +72,13 @@ class BunnyStorageClient
     request['AccessKey'] = @access_key
     request['content-type'] = 'application/octet-stream'
 
-    body = body.read if body.is_a?(File) || body.is_a?(Tempfile)
-    request.body = body
+    if body.respond_to?(:read)
+      body.rewind if body.respond_to?(:rewind) # Reset to the beginning if needed
+      request.body = body.read
+    else
+      request.body = body.to_s # Default to converting the body to a string
+    end
+
     response = make_request(uri, request)
 
     raise StandardError, "Response code #{response.code} is not OK!" unless success_code?(response.code)
