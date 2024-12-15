@@ -52,6 +52,11 @@ class BunnyStorageClient
     request['accept'] = '*/*'
     response = make_request(uri, request)
 
+    if response.code != '200'
+      @logger.error("Failed to get file from #{storage_zone_name}/#{filename}: #{response.code} #{response.body}")
+      return nil
+    end
+
     if as == :file
       generate_tempfile(filename, response.body)
     else
@@ -68,8 +73,9 @@ class BunnyStorageClient
 
     uri = build_uri(storage_zone_name, filename)
 
-    # First, send a HEAD request to check if the file exists
-    head_request = Net::HTTP::Head.new(uri)
+    # First, send a GET request to check if the file exists
+    # Maybe HEAD will be available in the future
+    head_request = Net::HTTP::Get.new(uri)
     head_request['AccessKey'] = @access_key
     head_request['accept'] = '*/*'
 
