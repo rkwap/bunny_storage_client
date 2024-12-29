@@ -52,10 +52,7 @@ class BunnyStorageClient
     request['accept'] = '*/*'
     response = make_request(uri, request)
 
-    if response.code != '200'
-      @logger.error("Failed to get file from #{storage_zone_name}/#{filename}: #{response.code} #{response.body}")
-      return nil
-    end
+    raise StandardError, "#{response.code} #{response.body}" unless success_code?(response.code)
 
     if as == :file
       generate_tempfile(filename, response.body)
