@@ -129,7 +129,9 @@ class BunnyStorageClient
     request = Net::HTTP::Delete.new(uri)
     request['AccessKey'] = @access_key
     response = make_request(uri, request)
-    raise StandardError, "Response code #{response.code} is not OK!" if !success_code?(response.code) && response.code != "404"
+
+    # hack, 500 is also not found
+    raise StandardError, "Response code #{response.code} is not OK!" if !success_code?(response.code) && response.code != "404" && response.code != "500"
 
     true
   rescue StandardError => e
