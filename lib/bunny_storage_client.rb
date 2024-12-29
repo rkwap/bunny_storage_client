@@ -167,6 +167,8 @@ class BunnyStorageClient
   def make_request(uri, request)
     https = Net::HTTP.new(uri.host, uri.port)
     https.use_ssl = true
+    https.open_timeout = 3
+    https.read_timeout = 5
     https.request(request)
   end
 
