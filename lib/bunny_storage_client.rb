@@ -7,7 +7,7 @@ require 'logger'
 # BunnyStorageClient is a Ruby SDK for interacting with BunnyCDN storage services.
 # API Reference: https://docs.bunny.net/reference/storage-api
 class BunnyStorageClient
-  VERSION = '1.0.0'
+  VERSION = '1.0.1'
   BASE_URL = 'https://storage.bunnycdn.com/'
 
   # Initializes the SDK with access credentials and optional logger.
@@ -16,11 +16,14 @@ class BunnyStorageClient
   # @param api_key [String] the API key for cache purging
   # @param storage_zone_name [String, nil] the default storage zone name
   # @param logger [Logger] the logger instance for logging errors and info
-  def initialize(access_key, api_key, storage_zone_name = nil, logger = Logger.new($stdout))
+  def initialize(access_key, api_key, storage_zone_name = nil, region = nil, logger = Logger.new($stdout))
     @access_key = access_key
     @api_key = api_key
+    @region = region
     @storage_zone_name = storage_zone_name
     @logger = logger
+
+    @base_url = @region ? "https://#{@region}.storage.bunnycdn.com/" : BASE_URL
   end
 
   # Sets the object filename and optional storage zone name for operations.
@@ -49,6 +52,8 @@ class BunnyStorageClient
     request['accept'] = '*/*'
     response = make_request(uri, request)
 
+    raise StandardError, "#{response.code} #{response.body}" unless success_code?(response.code)
+
     if as == :file
       generate_tempfile(filename, response.body)
     else
@@ -57,6 +62,28 @@ class BunnyStorageClient
   rescue StandardError => e
     @logger.error("Failed to get file from #{storage_zone_name}/#{filename}: #{e.message}")
     nil
+  end
+
+  def exist?(storage_zone_name: nil, filename: nil)
+    storage_zone_name ||= @storage_zone_name
+    filename ||= @filename
+
+    uri = build_uri(storage_zone_name, filename)
+
+    # First, send a GET request to check if the file exists
+    # Maybe HEAD will be available in the future
+    head_request = Net::HTTP::Get.new(uri)
+    head_request['AccessKey'] = @access_key
+    head_request['accept'] = '*/*'
+
+    head_response = make_request(uri, head_request)
+
+    # Check if the file exists (status code 200)
+    if head_response.code != '200'
+      return false
+    end
+
+    true
   end
 
   # Uploads a file to BunnyCDN storage.
@@ -72,8 +99,13 @@ class BunnyStorageClient
     request['AccessKey'] = @access_key
     request['content-type'] = 'application/octet-stream'
 
-    body = body.read if body.is_a?(File) || body.is_a?(Tempfile)
-    request.body = body
+    if body.respond_to?(:read)
+      body.rewind if body.respond_to?(:rewind) # Reset to the beginning if needed
+      request.body = body.read
+    else
+      request.body = body.to_s # Default to converting the body to a string
+    end
+
     response = make_request(uri, request)
 
     raise StandardError, "Response code #{response.code} is not OK!" unless success_code?(response.code)
@@ -94,7 +126,9 @@ class BunnyStorageClient
     request = Net::HTTP::Delete.new(uri)
     request['AccessKey'] = @access_key
     response = make_request(uri, request)
-    raise StandardError, "Response code #{response.code} is not OK!" unless success_code?(response.code)
+
+    # hack, 500 is also not found
+    raise StandardError, "Response code #{response.code} is not OK!" if !success_code?(response.code) && response.code != "404" && response.code != "500"
 
     true
   rescue StandardError => e
@@ -125,7 +159,7 @@ class BunnyStorageClient
   private
 
   def build_uri(storage_zone_name, filename)
-    url = File.join(BASE_URL, storage_zone_name, filename)
+    url = File.join(@base_url, storage_zone_name, filename)
     url = url[...-1] if url.end_with?(File::SEPARATOR)
     URI(url)
   end
@@ -133,6 +167,8 @@ class BunnyStorageClient
   def make_request(uri, request)
     https = Net::HTTP.new(uri.host, uri.port)
     https.use_ssl = true
+    https.open_timeout = 3
+    https.read_timeout = 5
     https.request(request)
   end
 
