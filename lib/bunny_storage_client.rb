@@ -7,7 +7,7 @@ require 'logger'
 # BunnyStorageClient is a Ruby SDK for interacting with BunnyCDN storage services.
 # API Reference: https://docs.bunny.net/reference/storage-api
 class BunnyStorageClient
-  VERSION = '1.0.1'
+  VERSION = '1.0.2'
   BASE_URL = 'https://storage.bunnycdn.com/'
 
   # Initializes the SDK with access credentials and optional logger.
@@ -41,8 +41,10 @@ class BunnyStorageClient
   #
   # @param storage_zone_name [String, nil] the storage zone name
   # @param filename [String, nil] the name of the file
-  # @return [String, nil] the file content
-  def get_file(storage_zone_name: nil, filename: nil, as: :string)
+  # @param as [Symbol] :string or :file, determines return type
+  # @param range [String, nil] optional Range header value (e.g., "bytes=0-1023")
+  # @return [String, nil] the file content or tempfile
+  def get_file(storage_zone_name: nil, filename: nil, as: :string, range: nil)
     storage_zone_name ||= @storage_zone_name
     filename ||= @filename
 
@@ -50,6 +52,7 @@ class BunnyStorageClient
     request = Net::HTTP::Get.new(uri)
     request['AccessKey'] = @access_key
     request['accept'] = '*/*'
+    request['Range'] = range if range
     response = make_request(uri, request)
 
     raise StandardError, "#{response.code} #{response.body}" unless success_code?(response.code)
